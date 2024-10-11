@@ -135,9 +135,7 @@ Logging in will initiate the last step, Step3.ps1.
 
 ## Issues
 
-1. Check on possibility that Step 3 scheduled task not properly removed during script.
-
-2. Try to decrease level of human interaction required in process (mostly the powershell script/steps).
+1. Enabling MDT Monitoring through Powershell needs work - Current work-around is re-enable through GUI.
 
 ## Coming Soon:
 
