@@ -172,8 +172,12 @@ $manage_mdt_app_bundles = Get-ChildItem -Path "MDT-Setup" -Filter "Manage_Applic
 $ping_google = Test-Connection google.com -Count 1 -Quiet
 if ($ping_google) {
     if ($mdt_setup_script) {
+        ## Get Domain prefix by splitting dc hostname
+        $domain_prefix = ($DC_HOSTNAME -Split '-')[0]
+        $domain_prefix = "$domain_prefix-pc-"
+
         Write-Host "MDT-Setup script found. Running the script..."
-        Powershell.exe -ExecutionPolicy Bypass -File "$($mdt_setup_script.fullname)"
+        Powershell.exe -ExecutionPolicy Bypass "&$($mdt_setup_script.fullname) -DomainPrefix $domain_prefix"
     }
     else {
         Write-Host "MDT-Setup script not found. Exiting..."

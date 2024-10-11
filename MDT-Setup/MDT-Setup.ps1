@@ -40,6 +40,7 @@
 ## Set up command line switches.
 [CmdletBinding()]
 Param(
+    [string]$DomainPrefix,
     [switch]$Help,
     [switch]$UpdateCheck)
 
@@ -559,15 +560,18 @@ else {
         Rename-Item -Path $MdtDepShare\Control\CustomSettings.ini -NewName CustomSettings-OgBackup.ini
         Write-Host "Creating custom CustomSettings.ini"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "[Settings]"
-        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "Priority=Model, Default, SetOSD"
-        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "Properties=OSDPrefix"
+        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "Priority=Init, Model, Default, SetOSD"
+        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "Properties=ComputerMacAddr, OSDPrefix"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value ""
-        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "[Virtual Machine]"
-        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "OSDComputerName=%TaskSequenceID%"
+        # Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "[Virtual Machine]"
+        # Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "OSDComputerName=%TaskSequenceID%"
+        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "[Init]"
+        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "ComputerMacAddr=#RIGHT(`"%MacAddress%`",5)#"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value ""
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "[Default]"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "_SMSTSORGNAME=Deploy"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "_SMSTSPackageName=%TaskSequenceName%"
+        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "OSDComputerName=$DomainPrefix%ComputerMacAddr%"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value ""
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "; MDT deployment settings"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "OSInstall=Y"
