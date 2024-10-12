@@ -139,7 +139,7 @@ Logging in will initiate the last step, Step3.ps1.
 
 ## Coming Soon:
 
-- Improvement of MDT configuration - task sequence/applications/etc.
+- Improvement of MDT Deployment.
 - Installation/Configuration of WDS
 - Installation/Configuration of WSUS
 
