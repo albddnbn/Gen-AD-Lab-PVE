@@ -158,17 +158,15 @@ Powershell.exe -ExecutionPolicy Bypass "$($user_creation_script.fullname)"
 Powershell.exe -ExecutionPolicy Bypass "$($fileshare_creation_script.fullname)"
 
 ## Install applications from the deploy folder on DC:
-$foldernames = Get-ChildItem -path 'deploy' -Directory -ErrorAction SilentlyContinue
+$foldernames = Get-ChildItem -path 'deploy' -Directory -ErrorAction SilentlyContinue | Select -Exp FullName
 $foldernames | % {
     try {
-        $fullpath = $_.fullname
-        $appname = $_.name
-        $scriptfile = "Deploy-$appname.ps1"
-        $scriptfile = Join-Path $_.Fullname $scriptfile 
         ## Set Location to folder
-        Set-Location "$fullpath"
+        Set-Location "$_"
+        $appname = $_ | Split-Path -Leaf
+        $scriptfile = "deploy-$appname.ps1"
 
-        Powershell.exe -ExecutionPolicy Bypass "$scriptfile" -Deploymenttype 'Install' -Deploymode 'Silent'
+        Powershell.exe -ExecutionPolicy Bypass "./$scriptfile" -Deploymenttype 'Install' -Deploymode 'Silent'
     }
     catch {
         Write-Host "Something went wrong with installing applications from $_." -Foregroundcolor Red
