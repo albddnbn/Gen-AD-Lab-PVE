@@ -158,13 +158,17 @@ Powershell.exe -ExecutionPolicy Bypass "$($user_creation_script.fullname)"
 Powershell.exe -ExecutionPolicy Bypass "$($fileshare_creation_script.fullname)"
 
 ## Install applications from the deploy folder on DC:
-$foldernames = Get-ChildItem -path 'deploy' -Directory -ErrorAction SilentlyContinue | Select -Exp Fullname
+$foldernames = Get-ChildItem -path 'deploy' -Directory -ErrorAction SilentlyContinue
 $foldernames | % {
     try {
+        $fullpath = $_.fullname
+        $appname = $_.name
+        $scriptfile = "Deploy-$appname.ps1"
+        $scriptfile = Join-Path $_.Fullname $scriptfile 
         ## Set Location to folder
-        Set-Location "$_"
+        Set-Location "$fullpath"
 
-        Powershell.exe -ExecutionPolicy Bypass "./Deploy-$_.ps1" -Deploymenttype 'Install' -Deploymode 'Silent'
+        Powershell.exe -ExecutionPolicy Bypass "$scriptfile" -Deploymenttype 'Install' -Deploymode 'Silent'
     }
     catch {
         Write-Host "Something went wrong with installing applications from $_." -Foregroundcolor Red
@@ -172,7 +176,6 @@ $foldernames | % {
 }
 
 Set-Location $BaseDirectory
-
 
 ## MDT Setup:
 ## Thank you, Digressive/MDT-Setup for this awesome MDT setup script!
