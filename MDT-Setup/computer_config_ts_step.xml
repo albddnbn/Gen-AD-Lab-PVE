@@ -1,0 +1,10 @@
+<step type="BDD_RunPowerShellAction" name="Computer Configuration" description="" disable="false" continueOnError="true" successCodeList="0 3010">
+    <defaultVarList>
+    <variable name="ScriptName" property="ScriptName">%SCRIPTROOT%\computer_config.ps1</variable>
+    <variable name="Parameters" property="Parameters">
+    </variable>
+    <variable name="PackageID" property="PackageID">
+    </variable>
+    </defaultVarList>
+    <action>cscript.exe "%SCRIPTROOT%\ZTIPowerShell.wsf"</action>
+</step>
