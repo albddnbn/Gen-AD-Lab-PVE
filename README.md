@@ -12,7 +12,6 @@ _For example: Step 1 checks for a drive containing the VirtIO iso to install nec
 - [Introduction](#introduction)
 - [Features](#features)
 - [Usage](#usage)
-- [Configuration](#configuration)
 - [Scripts](#scripts)
 - [Resources](#resources)
 - [Issues](#issues)
@@ -43,23 +42,70 @@ The Step1.ps1 Powershell script is used afterwards, to configure basic elements 
 
 In this example, a domain/network will be generated using the default settings from both **config.ps1**, and **new_dc_vm.sh**.
 
-1. Run **new_dc_vm.sh**, and specify the desired settings for the Domain Controller VM.
+### 1. Run **new_dc_vm.sh**, specify VM settings, select isos:
 
-### Create Domain Controller VM:
+<table>
+    <tr>
+        <td>
+        <img src="img\1-new-dc-vm.png">
+        </td>
+        <td>
+        <img src="img\2-vm-settings.png">
+        </td>
+    </tr>
+</table>
 
+### 2. Optionally create virtual network and firewall aliases:
+
+<table>
+    <tr>
+        <td>
+        <img src="img\3-zone-settings.png">
+        </td>
+        <td>
+        <img src="img\4-firewall-aliases.png">
+        </td>
+    </tr>
+</table>
+
+> [!NOTE]
 > VMs created using this script prompt for many values, but some settings are explicitly hard-coded based on recommendations from various articles, like this one: [https://davejansen.com/recommended-settings-windows-10-2016-2018-2019-vm-proxmox/](https://davejansen.com/recommended-settings-windows-10-2016-2018-2019-vm-proxmox/)
-
-The DC VM creation script will do a few things:
-
-1. Create Domain Controller VM in Proxmox VE.
-2. Create virtual network for the AD Lab/DC.
-3. Use a template to assign a basic set of Active Directory Domain Controller firewall rules to the VM.
 
 _Use VirtIO storage drivers during Windows Server installation._
 
 <img src="img\011-load-virtio-drivers-for-server-install.png" style="max-width: 750px;">
 
-### After installing Windows Server OS, run **Step1.ps1** on the DC VM to start the process.
+### 3. After installing Windows Server OS, run **Step1.ps1** on the DC VM to start the process.
+
+Network-related values in the configuration file should **correspond to any network values set during VM creation**.
+
+In this example, the top of config.ps1 would look something like this:
+
+```powershell
+## Domain configuration:
+$DOMAIN_CONFIG = [PSCustomObject]@{
+    Name          = 'lab.edu'
+    Netbios       = 'lab'
+    DC_Hostname   = 'test-dc-vm-1'
+    DC_IP         = '10.0.1.2'
+    DNS_Servers   = @('10.0.1.2', '8.8.8.8')
+    Gateway       = '10.0.1.1'
+    Subnet_Prefix = '24'
+    Password      = 'Somepass1'
+}
+## DHCP server and scope configuration:
+$DHCP_SERVER_CONFIG = [PSCustomObject]@{
+    IP_Addr = $DOMAIN_CONFIG.DC_IP
+    Scope   = [PSCustomObject]@{
+        Name          = 'A Domain DHCP Scope'
+        Start         = '10.0.1.10'
+        End           = '10.0.1.240'
+        Gateway       = $DOMAIN_CONFIG.Gateway
+        Subnet_Prefix = '255.255.255.0'
+        DNS_Servers   = $DOMAIN_CONFIG.DNS_Servers
+    }
+}
+```
 
 Steps 2 and 3 will run automatically as **scheduled tasks** after reboot/logins.
 
@@ -67,48 +113,23 @@ Steps 2 and 3 will run automatically as **scheduled tasks** after reboot/logins.
 
 _**\*Some interaction required for MDT Setup in Step 3.**_
 
-## Configuration
-
-Use **config/config.ps1** to configure basic settings, there are comments in the file meant to provide more information.
-
-The current configuration creates:
-
-- **Domain Name**: 'lab.edu'
-- **Domain Controller Name**: 'a-dc-01'
-- **Domain Controller IP**: '10.0.1.2'
-- **Domain Admin Password**: 'Somepass1'
-- **LAN/Zone**: '10.0.1.0/24'
-
-Fileshares, MDT Deployment/Reference shares, etc.
-
-<table>
-<tr>
-<td style="max-width: 450px;">
-<b>Configure the number of random AD users created through the <i>create_user_population.ps1</i> script's parameters.</b> By default the number of users created is 50, I would not advise beyond 1000 at this point in time due to size of the user_data.csv file.
-</td>
-<td>
-<img src="img/specify_num_users_012.png">
-</td>
-</tr>
-</table>
-
 ## Scripts
 
 #### Step 1 / Step1.ps1:
 
-- domain controller's hostname, static IP address info, DNS Settings
-- script will search attached drives for virtio msi installer (necessary for usage of virtio virtual hardware devices including network adapter)
+- Sets hostname, static IP address / related network settings
+- Searches available drives to find attached VirtIO iso and install drivers from: [https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/?C=M;O=D](https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/?C=M;O=D)
 
 #### Step 2 / Step2.ps1:
 
 - Installs AD DS with DNS server
-- configures new AD DS Forest and Domain Controller role
+- Configures AD DS Forest / Domain Controller
 
 #### Step 3 / Step3.ps1:
 
 - Installs and configures DHCP Server with single DHCP scope
 - Creates AD DS OUs, Groups, Users
-- Creates file shares for roaming profiles/folder redirection and configures permissions
+- Creates file shares that can be used for roaming profiles/folder redirection and configures permissions
 - Installs/configures MDT Server and dependencies
 - Adds steps to W10-22H2 x64 Task Sequence to install applications and configure settings
 - Imports VirtIO Drivers using virtio iso
