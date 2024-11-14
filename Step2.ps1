@@ -22,7 +22,7 @@ catch {
 }
 ## Scheduled Task Creation/Deletion:
 $step3_filepath = (get-item ./step3.ps1).fullname
-. ./create_scheduled_task.ps1 -task_name 'step3_genadlab' -task_file_path "$step3_filepath"
+. ./config/create_scheduled_task.ps1 -task_name 'step3_genadlab' -task_file_path "$step3_filepath"
 
 Get-ScheduledTask | ? { $_.TasKName -like "step2*adlab" } | Unregister-ScheduledTask -Confirm:$false
 
