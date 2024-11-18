@@ -577,8 +577,8 @@ else {
         Rename-Item -Path $MdtDepShare\Control\CustomSettings.ini -NewName CustomSettings-OgBackup.ini
         Write-Host "Creating custom CustomSettings.ini"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "[Settings]"
-        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "Priority=Init, Model, Default, SetOSD"
-        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "Properties=ComputerMacAddr, OSDPrefix"
+        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "Priority=Init, Default"
+        Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "Properties=ComputerMacAddr"
         Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value ""
         # Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "[Virtual Machine]"
         # Add-Content -Path $MdtDepShare\Control\CustomSettings.ini -Value "OSDComputerName=%TaskSequenceID%"

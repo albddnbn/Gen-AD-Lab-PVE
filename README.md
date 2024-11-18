@@ -29,6 +29,8 @@ This project is a collection of bash and PowerShell scripts that can be used to 
 The new_vm.sh bash script can be used first to generate a Domain Controller VM and corresponding virtual network elements.
 The Step1.ps1 Powershell script is used afterwards, to configure basic elements of an Active Directory Domain Controller. Step1.ps1 creates a scheduled task for Step2.ps1 which is run after reboot/login. Step2.ps1 creates the same type of scheduled task to execute Step3.ps1.
 
+**MDT Deployment/Driver situation**: Step3 will search for a mounted virtio iso to import VirtIO drivers, and attempt to download VMWare tools iso for VMWare Storage/SCSI Driver so that the deployment should work with several different types of 'hardware' available through Proxmox. Intel/Virtio NICs, and VMWare/Virtio SCSI controllers.
+
 ## Features
 
 - Create a Domain Controller VM in Proxmox

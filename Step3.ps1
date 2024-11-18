@@ -203,32 +203,38 @@ if ($ping_google) {
             ########################################################################################################
             ## MDT Deployment/DRIVER SETUP:
             ########################################################################################################
-            $modelname = Get-Ciminstance -class win32_computersystem | select -exp model
             $makename = Get-Ciminstance -class win32_computersystem | select -exp manufacturer
 
             Write-Host "Creating VirtIO driver folder in Out-of-box drivers\WinPE folder."
             ## create virtio driver folder:
             New-Item -Path "DS002:\Out-of-box drivers\$makename" -ItemType Directory
-            New-Item -Path "DS002:\Out-of-box drivers\$makename\$modelname" -ItemType Directory
 
             Write-Host "Importing VirtIO drivers to deployment share.."
             ## Import virtio drivers to MDT:
-            Import-MDTDriver -Path "DS002:\Out-of-box drivers\$makename\$modelname" -SourcePath $w10_folder.FullName -Verbose
+            Import-MDTDriver -Path "DS002:\Out-of-box drivers\$makename" -SourcePath $w10_folder.FullName -Verbose
 
-            New-Item -Path "DS002:\Out-of-box drivers\WinPE\VirtIO" -ItemType Directory
+            # New-Item -Path "DS002:\Out-of-box drivers\WinPE\QEMU" -ItemType Directory
 
 
             ## Get ALL w10 amd64 drivers from virtio iso and import into make/model folder for injection
-            Import-MDTDriver -Path "DS002:\Out-of-box drivers\WinPE\VirtIO" -SourcePath $w10_folder.FullName -Verbose
+            Import-MDTDriver -Path "DS002:\Out-of-box drivers\WinPE" -SourcePath $w10_folder.FullName -Verbose
 
             $folders = Get-ChildItem -Path $drive.root -Include 'amd64' -Directory -Recurse | ? { $_.Parent.name -eq 'w10' }
 
             $folders | % {
-                Import-MDTDriver -Path "DS002:\Out-of-box drivers\$makename\$modelname" -SourcePath $_.fullname -verbose
+                Import-MDTDriver -Path "DS002:\Out-of-box drivers\$makename" -SourcePath $_.fullname -verbose
             }
             break
         }
     }
+
+    ## Try to import the VMWare Storage/SCSI driver.
+    iwr -Uri "https://packages.vmware.com/tools/esx/latest/windows/VMware-tools-windows-12.4.0-23259341.iso" -outfile "MDT-Setup/vmware-tools.iso"
+    
+    $driveletter = Mount-DiskImage "$PSSCRIPTROOT/MDT-Setup/vmware-tools.iso" -PassThru | Get-Volume | Select -Exp DriveLetter
+
+    Import-MDTDriver -Path "DS002:\Out-of-box drivers\WinPE" -SourcePath "$(Join-Path $driveletter 'Program Files\VMware\VMware Tools\Drivers\pvscsi\Win8\amd64')"
+
 
     ####################################################################################################################
     ## MDT Deployment/APPLICATION SETUP: using apps from 'deploy' folder - PS App Deployment Toolkits
