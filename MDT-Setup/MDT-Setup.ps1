@@ -646,6 +646,7 @@ else {
         $XMLContent = Get-Content "$MdtDepShare\Control\Settings.xml"
         $XMLContent = $XMLContent -Replace '<SupportX86>True</SupportX86>', '<SupportX86>False</SupportX86>'
         $XMLContent = $XMLContent -Replace '<Boot.x64.SelectionProfile>All Drivers and Packages</Boot.x64.SelectionProfile>', '<Boot.x64.SelectionProfile>WinPE</Boot.x64.SelectionProfile>'
+
         $XMLContent | Out-File "$MdtDepShare\Control\Settings.xml"
 
         ## Adding in - enabling of install applications phase?
@@ -687,6 +688,11 @@ else {
         $TaskSequenceXML = Get-Content "$MdtDepShare\Control\W10-22H2\ts.xml"
         ## Enable the 'Install Applications' step to install application bundle containing MainApps from Deploy folder.
         $TaskSequenceXML = $TaskSequenceXML -Replace '<step type="BDD_InstallApplication" name="Install Applications" disable="true" continueOnError="false" successCodeList="0 3010" description="" startIn="">', '<step type="BDD_InstallApplication" name="Install Applications" disable="false" continueOnError="false" successCodeList="0 3010" description="" startIn="">'
+        ## set DriverGroup001 to %Make% instead of %Make%/%Model%
+
+        ## this doesn't work yet***-----------
+
+        $TaskSequenceXML = $TaskSequenceXML -Replace '<variable name="VariableValue" property="VariableValue">%Make%`\%Model%</variable>', '<variable name="VariableValue" property="VariableValue">%Make%</variable>'
 
         $TaskSequenceXML | Out-File "$MdtDepShare\Control\W10-22H2\ts.xml"
 

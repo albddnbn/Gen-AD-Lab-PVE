@@ -138,7 +138,18 @@ $foldernames | % {
     try {
         ## Set Location to folder
         Set-Location "$_"
+        $files_folder = "$_\Files"
+        if (-not (Test-Path $files_folder -PathType Container -ErrorAction SilentlyContinue)) {
+            New-Item -Path $files_folder -ItemType Directory | Out-null
+        }
+        ## Download chrome installer since the MSI is too big for Github repo.
+        ## https://stackoverflow.com/questions/28682642/powershell-why-is-using-invoke-webrequest-much-slower-than-a-browser-download
         $appname = $_ | Split-Path -Leaf
+        if ($appname -eq 'chrome') {
+            $google_out_path = Join-Path $files_folder "googlechromestandaloneenterprise64.msi"
+            $wc = new-object net.webclient
+            $wc.downloadfile("https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi", "$google_out_path")
+        }
         $scriptfile = "deploy-$appname.ps1"
 
         Powershell.exe -ExecutionPolicy Bypass "./$scriptfile" -Deploymenttype 'Install' -Deploymode 'Silent'
@@ -177,13 +188,12 @@ if ($ping_google) {
 
     New-PSDrive -Name "DS002" -PSProvider MDTProvider -Root $DEPLOY_SHARE_LOCAL_PATH -Description "MDT Deployment Share" -Verbose
 
-    ## Enable MDT Monitor Service (or try to!)
+    ## Enable MDT Monitor Service (or try to - I haven't gotten it to work successfully yet.)
+    ## Workaround - re-enable through GUI.
     Enable-MDTMonitorService -EventPort 9800 -DataPort 9801 -Verbose
     Set-ItemProperty -path DS002: -name MonitorHost -value $env:COMPUTERNAME
     Set-ItemProperty -path DS002: -name MonitorEventPort -value 9800
     Set-ItemProperty -path DS002: -name MonitorDataPort -value 9801
-    New-Service -Name "MDT_Monitor" -Description "Microsoft Deployment Toolkit Monitor Service" -BinaryPathName "C:\Program Files\Microsoft Deployment Toolkit\Monitor\Microsoft.BDD.MonitorService.exe" -DisplayName "Microsoft Deployment Toolkit Monitor Service" -StartupType Automatic
-
 
     $computer_config_script = Get-ChildItem -Path MDT-Setup -Filter "computer_config.ps1" -File -ErrorAction SilentlyContinue
     if ($computer_config_script) {
@@ -223,37 +233,35 @@ if ($ping_google) {
 
             $folders | % {
                 Import-MDTDriver -Path "DS002:\Out-of-box drivers\$makename" -SourcePath $_.fullname -verbose
+
+                ## If its a network driver - import to winpe as well.
+                if ($_.fullname -like "*netkvm*") {
+                    Import-MDTDriver -Path "DS002:\Out-of-box drivers\WinPE" -SourcePath $_.fullname -verbose
+                }
             }
             break
         }
     }
 
     ## Try to import the VMWare Storage/SCSI driver.
-    iwr -Uri "https://packages.vmware.com/tools/esx/latest/windows/VMware-tools-windows-12.4.0-23259341.iso" -outfile "MDT-Setup/vmware-tools.iso"
+    # iwr -Uri "https://packages.vmware.com/tools/esx/latest/windows/VMware-tools-windows-12.4.0-23259341.iso" -outfile "MDT-Setup/vmware-tools.iso"
     
-    $driveletter = Mount-DiskImage "$PSSCRIPTROOT/MDT-Setup/vmware-tools.iso" -PassThru | Get-Volume | Select -Exp DriveLetter
+    $vmware_tools_out_path = "$PSScriptRoot\MDT-Setup\vmware-tools.iso"
+    $wc = new-object net.webclient
+    $wc.downloadfile("https://packages.vmware.com/tools/esx/latest/windows/VMware-tools-windows-12.4.0-23259341.iso", "$vmware_tools_out_path")
 
-    Import-MDTDriver -Path "DS002:\Out-of-box drivers\WinPE" -SourcePath "$(Join-Path $driveletter 'Program Files\VMware\VMware Tools\Drivers\pvscsi\Win8\amd64')"
+    $driveletter = Mount-DiskImage "$vmware_tools_out_path" -PassThru | Get-Volume | Select -Exp DriveLetter
 
 
+    ## VMWare SCSI driver > WinPE
+    Import-MDTDriver -Path "DS002:\Out-of-box drivers\WinPE" -SourcePath "$driveletter`:\Program Files\VMware\VMware Tools\Drivers\pvscsi\Win8\amd64"
+    ## VMWARE SCSI driver > VMWare, Inc. / VMWareVirtual Platform
+    Import-MDTDriver -Path "DS002:\Out-of-box drivers\VMWare, Inc.\VMWareVirtual Platform" -SourcePath "$driveletter`:\Program Files\VMware\VMware Tools\Drivers\pvscsi\Win8\amd64"
     ####################################################################################################################
     ## MDT Deployment/APPLICATION SETUP: using apps from 'deploy' folder - PS App Deployment Toolkits
     ####################################################################################################################
     $deploy_path = "deploy"
     @('7zip', 'chrome', 'VSCode') | % {
-        $folder = "$deploy_path\$_\Files"
-        if (-not (Test-Path $folder -PathType Container -ErrorAction SilentlyContinue)) {
-            New-Item -Path $folder -ItemType Directory | Out-null
-        }
-
-        ## Download chrome installer since the MSI is too big for Github repo.
-        ## https://stackoverflow.com/questions/28682642/powershell-why-is-using-invoke-webrequest-much-slower-than-a-browser-download
-        if ($_ -eq 'chrome') {
-            $google_out_path = Join-Path $folder "googlechromestandaloneenterprise64.msi"
-            $wc = new-object net.webclient
-            $wc.downloadfile("https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi", "$google_out_path")
-        }
-
         $app_source = "$deploy_path\$_"
         Import-MDTApplication -Path "DS002:\Applications" -enable $true -reboot $false -hide $false -Name "$_" -ShortName "$_" `
             -CommandLine "Powershell.exe -executionPolicy bypass ./Deploy-$_.ps1 -DeploymentType Install -DeployMode Silent" `
