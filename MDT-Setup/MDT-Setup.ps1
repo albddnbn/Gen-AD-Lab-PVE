@@ -660,8 +660,15 @@ else {
                 $_.InnerText = $mainApps_bundle_guid
             }
         }
-
+        ## Change DriverGroup Path from 'make/model' to make to fit in with current setup.
+        $driver_step = $task_sequence_xml.sequence.group.step | ? { $_.name -eq 'Set DriverGroup' }
+        $installapps.defaultvarlist.variable | % {
+            if ($_.name -eq 'VariableValue') {
+                $_.InnerText = '%Make%'
+            }
+        }
         
+
         ## Create new step in task sequence that runs a Powershell script
         $computer_config_script_step = @"
     <step type="BDD_RunPowerShellAction" name="Computer Configuration" description="" disable="false" continueOnError="true" successCodeList="0 3010">
