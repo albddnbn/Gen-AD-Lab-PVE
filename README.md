@@ -5,7 +5,7 @@
 A series of Powershell scripts that can be used to generate an Active Directory Lab environment.
 This series was created to be used with **Proxmox Virtual Environment**, but my goal is for the scripts to work in other environments as well.
 
-_For example: Step 1 checks for a drive containing the VirtIO iso to install necessary drivers for Proxmox VMs, and Step 3 creates a folder in the MDT Deployment Share specific to Make/Model of Proxmox QEMU Vms._
+_For example: Step 1 checks for a drive containing the VirtIO iso to install necessary drivers for Proxmox VMs, and Step 3 creates a folder in the MDT Deployment Share specific to %Make% of Proxmox QEMU Vms._
 
 ## Table of Contents
 
@@ -134,7 +134,7 @@ _**\*Some interaction required for MDT Setup in Step 3.**_
 - Creates file shares that can be used for roaming profiles/folder redirection and configures permissions
 - Installs/configures MDT Server and dependencies
 - Adds steps to W10-22H2 x64 Task Sequence to install applications and configure settings
-- Imports VirtIO Drivers using virtio iso
+- Imports VirtIO/VMWare drivers into Deployment Share
 
 ## Resources
 
@@ -153,6 +153,8 @@ _**\*Some interaction required for MDT Setup in Step 3.**_
 ## Issues
 
 1. Current work-around for MDT Monitoring is to **disable, then re-enable through GUI**.
+
+2. If you run into an error during Step 3 when script tries to run Windows Media Creation Tool, **re-run Step3.ps1**.
 
 ## License
 
