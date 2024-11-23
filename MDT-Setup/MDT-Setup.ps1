@@ -662,7 +662,7 @@ else {
         }
         ## Change DriverGroup Path from 'make/model' to make to fit in with current setup.
         $driver_step = $task_sequence_xml.sequence.group.step | ? { $_.name -eq 'Set DriverGroup' }
-        $installapps.defaultvarlist.variable | % {
+        $driver_step.defaultvarlist.variable | % {
             if ($_.name -eq 'VariableValue') {
                 $_.InnerText = '%Make%'
             }
