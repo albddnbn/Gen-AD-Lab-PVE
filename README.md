@@ -3,7 +3,9 @@
 ![Powershell](https://img.shields.io/badge/language-Powershell-0078D4) ![Bash](https://img.shields.io/badge/Bash-05c100)
 
 A series of Powershell scripts that can be used to generate an Active Directory Lab environment.
-This series was created to be used with **Proxmox Virtual Environment**, but my goal is for the scripts to work in other environments as well.
+This series was created to be used with **Proxmox Virtual Environment** as an experiment. 
+
+If using HyperV or VMWare especially, you should use the **AutomatedLab powershell module** to quickly create your environments.
 
 _For example: Step 1 checks for a drive containing the VirtIO iso to install necessary drivers for Proxmox VMs, and Step 3 creates a folder in the MDT Deployment Share specific to %Make% of Proxmox VMs ('QEMU')._
 
